@@ -5,21 +5,16 @@ class ParallelCoord {
         this.container = container;
         this.data = data;
         this.dimensions = dimensions;
-    this.margin = { top: 30, right: 50, bottom: 30, left: 80 };
+        this.margin = { top: 50, right: 50, bottom: 50, left: 80 };
 
-    // Use container dimensions for sizing (fit within container without overflow)
-    const containerRect = container.getBoundingClientRect();
-    const containerWidth = containerRect && containerRect.width ? containerRect.width : 800;
-    const containerHeight = containerRect && containerRect.height ? containerRect.height : 400;
-    this.width = Math.max(0, containerWidth - this.margin.left - this.margin.right);
-    this.height = Math.max(0, containerHeight - this.margin.top - this.margin.bottom);
-        // color scheme
-        this.defaultColor = '#666';
-        this.selectedColor = 'red';
-        this.hoverColor = '#1f77b4';
+        // Use container dimensions for sizing (fit within container without overflow)
+        const containerRect = container.getBoundingClientRect();
+        const containerWidth = containerRect && containerRect.width ? containerRect.width : 800;
+        const containerHeight = containerRect && containerRect.height ? containerRect.height : 400;
+        this.width = Math.max(0, containerWidth - this.margin.left - this.margin.right);
+        this.height = Math.max(0, containerHeight - this.margin.top - this.margin.bottom);
         this.selectedIds = new Set();
-        this.selectedStrokeWidth = 2;
-        
+
         this.init();
     }
 
@@ -207,7 +202,7 @@ class ParallelCoord {
         }
 
         const [y0, y1] = event.selection;
-        
+
         // Filter data based on brush selection
         const selected = this.data.filter(d => {
             const y = this.y[dimension](d[dimension]);

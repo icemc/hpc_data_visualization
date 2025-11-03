@@ -2,44 +2,44 @@ import * as d3 from 'd3'
 
 class ScatterplotD3 {
 
-  margin = {top: 100, right: 10, bottom: 50, left: 100};
+  margin = { top: 50, right: 30, bottom: 30, left: 80 };
   size;
   height;
   width;
   matSvg;
-  defaultOpacity=0.3;
-  transitionDuration=1000;
+  defaultOpacity = 0.3;
+  transitionDuration = 1000;
   circleRadius = 3;
   xScale;
   yScale;
   brush;
   brushGroup;
 
-  constructor(el){
-    this.el=el;
+  constructor(el) {
+    this.el = el;
   };
 
   create = function (config) {
-    this.size = {width: config.size.width, height: config.size.height};
+    this.size = { width: config.size.width, height: config.size.height };
     this.width = this.size.width - this.margin.left - this.margin.right;
     this.height = this.size.height - this.margin.top - this.margin.bottom;
 
-    console.log("create SVG width=" + (this.width + this.margin.left + this.margin.right) + " height=" + (this.height+ this.margin.top + this.margin.bottom));
+    console.log("create SVG width=" + (this.width + this.margin.left + this.margin.right) + " height=" + (this.height + this.margin.top + this.margin.bottom));
 
-    this.matSvg=d3.select(this.el).append("svg")
+    this.matSvg = d3.select(this.el).append("svg")
       .attr("width", this.width + this.margin.left + this.margin.right)
       .attr("height", this.height + this.margin.top + this.margin.bottom)
       .append("g")
-      .attr("class","matSvgG")
+      .attr("class", "matSvgG")
       .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
 
-    this.xScale = d3.scaleLinear().range([0,this.width]);
-    this.yScale = d3.scaleLinear().range([this.height,0]);
+    this.xScale = d3.scaleLinear().range([0, this.width]);
+    this.yScale = d3.scaleLinear().range([this.height, 0]);
 
     // Build xAxisG
     this.matSvg.append("g")
-      .attr("class","xAxisG")
-      .attr("transform","translate(0,"+this.height+")")
+      .attr("class", "xAxisG")
+      .attr("transform", "translate(0," + this.height + ")")
 
     // Add X-axis label
     this.matSvg.append("text")
@@ -53,7 +53,7 @@ class ScatterplotD3 {
 
     // Build yAxisG
     this.matSvg.append("g")
-      .attr("class","yAxisG")
+      .attr("class", "yAxisG")
 
     // Add Y-axis label
     this.matSvg.append("text")
@@ -71,29 +71,29 @@ class ScatterplotD3 {
       .attr("class", "brush");
   }
 
-  changeBorderAndOpacity(selection, selected){
-    selection.style("opacity", selected?1:this.defaultOpacity)
+  changeBorderAndOpacity(selection, selected) {
+    selection.style("opacity", selected ? 1 : this.defaultOpacity)
     selection.select(".markerCircle")
-      .attr("stroke-width",selected?2:0)
+      .attr("stroke-width", selected ? 2 : 0)
   }
 
-  updateMarkers(selection,xAttribute,yAttribute){
+  updateMarkers(selection, xAttribute, yAttribute) {
     selection
       .transition().duration(this.transitionDuration)
-      .attr("transform", (item)=>{
+      .attr("transform", (item) => {
         const xPos = this.xScale(item[xAttribute]);
         const yPos = this.yScale(item[yAttribute]);
-        return "translate("+xPos+","+yPos+")";
+        return "translate(" + xPos + "," + yPos + ")";
       })
-    this.changeBorderAndOpacity(selection,false)
+    this.changeBorderAndOpacity(selection, false)
   }
 
-  highlightSelectedItems(selectedItems){
+  highlightSelectedItems(selectedItems) {
     this.matSvg.selectAll(".markerG")
-      .data(selectedItems,(itemData)=>itemData.index)
+      .data(selectedItems, (itemData) => itemData.index)
       .join(
-        enter=>enter,
-        update=>{
+        enter => enter,
+        update => {
           this.changeBorderAndOpacity(update, true);
         },
         exit => {
@@ -102,14 +102,14 @@ class ScatterplotD3 {
       )
   }
 
-  updateAxis = function(visData,xAttribute,yAttribute){
-    const minXAxis = d3.min(visData.map((item)=>{return item[xAttribute]}));
-    const maxXAxis = d3.max(visData.map((item)=>{return item[xAttribute]}));
-    const minYAxis = d3.min(visData.map((item)=>{return item[yAttribute]}));
-    const maxYAxis = d3.max(visData.map((item)=>{return item[yAttribute]}));
+  updateAxis = function (visData, xAttribute, yAttribute) {
+    const minXAxis = d3.min(visData.map((item) => { return item[xAttribute] }));
+    const maxXAxis = d3.max(visData.map((item) => { return item[xAttribute] }));
+    const minYAxis = d3.min(visData.map((item) => { return item[yAttribute] }));
+    const maxYAxis = d3.max(visData.map((item) => { return item[yAttribute] }));
 
-    this.xScale.domain([minXAxis,maxXAxis]);
-    this.yScale.domain([minYAxis,maxYAxis]);
+    this.xScale.domain([minXAxis, maxXAxis]);
+    this.yScale.domain([minYAxis, maxYAxis]);
 
     this.matSvg.select(".xAxisG")
       .transition().duration(500)
@@ -128,57 +128,57 @@ class ScatterplotD3 {
       .text(yAttribute.charAt(0).toUpperCase() + yAttribute.slice(1));
   }
 
-  renderScatterplot = function (visData, xAttribute, yAttribute, controllerMethods){
+  renderScatterplot = function (visData, xAttribute, yAttribute, controllerMethods) {
     console.log("render scatterplot with a new data list ...")
 
     this.updateAxis(visData, xAttribute, yAttribute);
 
     this.matSvg.selectAll(".markerG")
-      .data(visData,(itemData)=>itemData.index)
+      .data(visData, (itemData) => itemData.index)
       .join(
-        enter=>{
-          const itemG=enter.append("g")
-            .attr("class","markerG")
-            .style("opacity",this.defaultOpacity)
-            .on("click", (event,itemData)=>{
+        enter => {
+          const itemG = enter.append("g")
+            .attr("class", "markerG")
+            .style("opacity", this.defaultOpacity)
+            .on("click", (event, itemData) => {
               controllerMethods.handleOnClick(itemData);
             })
 
           itemG.append("circle")
-            .attr("class","markerCircle")
-            .attr("r",this.circleRadius)
-            .attr("stroke","red")
+            .attr("class", "markerCircle")
+            .attr("r", this.circleRadius)
+            .attr("stroke", "red")
 
-          this.updateMarkers(itemG,xAttribute,yAttribute);
+          this.updateMarkers(itemG, xAttribute, yAttribute);
         },
-        update=>{
-          this.updateMarkers(update,xAttribute,yAttribute)
+        update => {
+          this.updateMarkers(update, xAttribute, yAttribute)
         },
-        exit =>{
+        exit => {
           exit.remove()
         }
       )
 
     // ========== ADD 2D BRUSH TO SCATTERPLOT ==========
     this.brushGroup.selectAll("*").remove();
-    
+
     this.brush = d3.brush()
       .extent([[0, 0], [this.width, this.height]])
       .on("start brush end", (event) => {
         if (event.selection) {
           const [[x0, y0], [x1, y1]] = event.selection;
-          
+
           const xMin = this.xScale.invert(x0);
           const xMax = this.xScale.invert(x1);
           const yMax = this.yScale.invert(y0);
           const yMin = this.yScale.invert(y1);
-          
+
           const selectedData = visData.filter(d => {
             const xVal = d[xAttribute];
             const yVal = d[yAttribute];
             return xVal >= xMin && xVal <= xMax && yVal >= yMin && yVal <= yMax;
           });
-          
+
           if (controllerMethods && controllerMethods.updateSelectedItems) {
             controllerMethods.updateSelectedItems(selectedData);
           }
@@ -188,11 +188,11 @@ class ScatterplotD3 {
           }
         }
       });
-    
+
     this.brushGroup.call(this.brush);
   }
 
-  clear = function(){
+  clear = function () {
     d3.select(this.el).selectAll("*").remove();
   }
 }

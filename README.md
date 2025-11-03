@@ -66,4 +66,4 @@ Selection identity: each row is assigned a stable `index` (from the parsed CSV) 
 - If the app fails to start, check that `node` and `npm` are installed and that dependencies were installed successfully.
 
 ## License
-This repository is provided for educational purposes. Add a license if you plan to reuse or publish the code.
+This repository is provided for educational purposes.
