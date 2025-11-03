@@ -13,19 +13,10 @@ function App() {
 
     useEffect(()=>{
         console.log("App did mount");
-        fetchCSV("/data/Housing.csv",(response)=>{
-            console.log("CSV Data loaded:", response.data);
-            if (response.data && response.data.length > 0) {
-                const processedData = response.data.map((d, index) => ({
-                    ...d,
-                    index,
-                    area: +d.area,
-                    price: +d.price
-                }));
-                console.log("Processed data:", processedData);
-                setData(processedData);
-            }
-        });
+        fetchCSV("data/Housing.csv",(response)=>{
+            console.log("initial setData() ...")
+            setData(response.data);
+        })
         return ()=>{
             console.log("App did unmount");
         }

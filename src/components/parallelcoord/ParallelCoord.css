@@ -1,0 +1,24 @@
+.parallel-coord-container {
+    background-color: white;
+    border-radius: 5px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.data-line {
+    transition: opacity 0.3s ease, stroke 0.3s ease;
+}
+
+.axis text {
+    font-size: 12px;
+}
+
+.axis line, .axis path {
+    stroke: #ddd;
+}
+
+.brush .selection {
+    stroke: #969696;
+    fill: #666;
+    fill-opacity: 0.1;
+}
