@@ -5,9 +5,14 @@ class ParallelCoord {
         this.container = container;
         this.data = data;
         this.dimensions = dimensions;
-        this.margin = { top: 30, right: 50, bottom: 30, left: 50 };
-        this.width = 800 - this.margin.left - this.margin.right;
-        this.height = 400 - this.margin.top - this.margin.bottom;
+    this.margin = { top: 30, right: 50, bottom: 30, left: 80 };
+
+    // Use container dimensions for sizing (fit within container without overflow)
+    const containerRect = container.getBoundingClientRect();
+    const containerWidth = containerRect && containerRect.width ? containerRect.width : 800;
+    const containerHeight = containerRect && containerRect.height ? containerRect.height : 400;
+    this.width = Math.max(0, containerWidth - this.margin.left - this.margin.right);
+    this.height = Math.max(0, containerHeight - this.margin.top - this.margin.bottom);
         // color scheme
         this.defaultColor = '#666';
         this.selectedColor = 'red';
@@ -89,6 +94,21 @@ class ParallelCoord {
                     for (let v = min; v <= max; v += 2000) tickVals.push(v);
                     axisGen = d3.axisLeft(scale).tickValues(tickVals);
                 }
+                // For integer-valued dimensions (bathrooms/stories/parking) force whole-number ticks
+                else if (['bathroom', 'bathrooms', 'stories', 'parking'].includes(dim) && scale && scale.domain) {
+                    const domain = scale.domain();
+                    const d0 = Math.min(domain[0], domain[1]);
+                    const d1 = Math.max(domain[0], domain[1]);
+                    const minInt = Math.ceil(d0);
+                    const maxInt = Math.floor(d1);
+                    if (maxInt >= minInt) {
+                        const tickVals = [];
+                        for (let v = minInt; v <= maxInt; v += 1) tickVals.push(v);
+                        axisGen = d3.axisLeft(scale).tickValues(tickVals);
+                    } else {
+                        axisGen = d3.axisLeft(scale).ticks(halfTickCount);
+                    }
+                }
                 // numeric scales: reduce tick count (fallback)
                 else if (scale && scale.ticks) {
                     axisGen = d3.axisLeft(scale).ticks(halfTickCount);
@@ -143,50 +163,35 @@ class ParallelCoord {
             return d3.line()(points);
         };
 
-        // Remove existing lines
-        this.svg.selectAll('.data-line').remove();
+        // Draw lines inside a foreground group so CSS selectors can style them
+        // Remove previous foreground group to cleanly redraw
+        this.svg.selectAll('.foreground').remove();
+        const fg = this.svg.append('g').attr('class', 'foreground');
 
-    // Draw lines (use index as key so updates are stable)
-        this.svg.selectAll('.data-line')
+        fg.selectAll('path')
             .data(this.data, d => d.index)
             .join('path')
             .attr('class', 'data-line')
             .attr('d', path)
-            .style('fill', 'none')
-            .style('stroke', this.defaultColor)
-            .style('opacity', 0.7)
+            .attr('fill', 'none')
+            // CSS will handle stroke, opacity and hover/selected states via .foreground path rules
             .on('mouseover', (event, d) => {
-                // highlight on hover (blue) and show tooltip
-                d3.select(event.currentTarget).raise().style('stroke', this.hoverColor).style('opacity', 1).style('stroke-width', 2);
+                // bring to front for tooltip visibility
+                d3.select(event.currentTarget).raise();
                 this.showTooltip(event, d);
             })
             .on('mousemove', (event, d) => this.moveTooltip(event, d))
             .on('mouseout', (event, d) => {
-                // restore color based on selection
-                const el = d3.select(event.currentTarget);
-                const isSelected = this.selectedIds.has(d.index);
-                                el.style('stroke', isSelected ? this.selectedColor : this.defaultColor)
-                                    .style('opacity', isSelected ? 1 : 0.15)
-                                    .style('stroke-width', isSelected ? `${this.selectedStrokeWidth}px` : null);
                 this.hideTooltip();
-            });
-            
-        // add click interaction: select the clicked line (single selection)
-        this.svg.selectAll('.data-line')
+            })
             .on('click', (event, d) => {
-                // prevent default event propagation
                 event.stopPropagation();
-                // set selected to only this index
+                // select only this line
                 this.selectedIds = new Set([d.index]);
-                // update visuals
-                this.svg.selectAll('.data-line')
-                    .style('stroke', p => this.selectedIds.has(p.index) ? this.selectedColor : this.defaultColor)
-                    .style('opacity', p => this.selectedIds.has(p.index) ? 1 : 0.15)
-                    .style('stroke-width', p => this.selectedIds.has(p.index) ? `${this.selectedStrokeWidth}px` : null);
-                // call selection callback with the underlying data object
-                if (this.onBrushEnd) {
-                    this.onBrushEnd([d]);
-                }
+                // update class on paths
+                fg.selectAll('path').classed('selected', p => this.selectedIds.has(p.index));
+                // emit selection to container
+                if (this.onBrushEnd) this.onBrushEnd([d]);
             });
     }
 
@@ -210,14 +215,11 @@ class ParallelCoord {
         });
 
         // Update visual appearance (selected lines -> selectedColor)
-        const defaultColor = this.defaultColor;
         const selectedIds = new Set(selected.map(d => d.index));
         this.selectedIds = selectedIds;
 
-        this.svg.selectAll('.data-line')
-            .style('stroke', d => selectedIds.has(d.index) ? this.selectedColor : defaultColor)
-            .style('opacity', d => selectedIds.has(d.index) ? 1 : 0.15)
-            .style('stroke-width', d => selectedIds.has(d.index) ? `${this.selectedStrokeWidth}px` : null);
+        // toggle selected class on foreground paths
+        this.svg.selectAll('.foreground path').classed('selected', d => selectedIds.has(d.index));
 
         // Call callback with selected data
         if (this.onBrushEnd) {
@@ -226,23 +228,16 @@ class ParallelCoord {
     }
 
     updateHighlight(selectedData) {
-        const defaultColor = this.defaultColor;
         if (!selectedData || selectedData.length === 0) {
             this.selectedIds = new Set();
-            this.svg.selectAll('.data-line')
-                .style('stroke', defaultColor)
-                .style('opacity', 0.7)
-                .style('stroke-width', null);
+            this.svg.selectAll('.foreground path').classed('selected', false);
             return;
         }
 
         // Match by index to handle selections coming from other components
         const selectedIds = new Set(selectedData.map(d => d.index));
         this.selectedIds = selectedIds;
-        this.svg.selectAll('.data-line')
-            .style('stroke', d => selectedIds.has(d.index) ? this.selectedColor : defaultColor)
-            .style('opacity', d => selectedIds.has(d.index) ? 1 : 0.15)
-            .style('stroke-width', d => selectedIds.has(d.index) ? `${this.selectedStrokeWidth}px` : null);
+        this.svg.selectAll('.foreground path').classed('selected', d => selectedIds.has(d.index));
     }
 
     setOnBrushEnd(callback) {

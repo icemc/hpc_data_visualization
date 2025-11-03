@@ -1,12 +1,16 @@
 .parallel-coord-container {
-    background-color: white;
-    border-radius: 5px;
-    padding: 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 .data-line {
-    transition: opacity 0.2s ease, stroke 0.2s ease, stroke-width 0.15s ease;
+    /* set a stable default stroke width and avoid transitioning stroke-width
+       because animating stroke-width can cause repaint glitches in some
+       browsers when toggling between explicit and null values */
+    stroke-width: 1;
+    transition: opacity 0.2s ease, stroke 0.2s ease;
 }
 
 .axis text {
@@ -30,4 +34,28 @@
 }
 .data-line{
     cursor: pointer;
+}
+
+/* Foreground styling for parallel coordinates (selected / hover states) */
+.foreground path {
+    fill: none;
+    stroke-opacity: 0.1;
+    stroke: gray;
+    stroke-width: 1.7px;
+}
+
+.foreground path.selected {
+    stroke: blue;
+    stroke-opacity: 0.8;
+    stroke-width: 2px;
+}
+
+.foreground path:hover {
+    stroke: blue;
+    stroke-opacity: 1;
+    stroke-width: 2px;
+}
+
+.dimension {
+    cursor: move;
 }

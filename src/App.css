@@ -1,16 +1,37 @@
 .App {
     text-align: center;
-    height: 100%;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
 }
+
 #MultiviewContainer{
-    height: 100%;
+    height: 100vh;
+    width: 100vw;
+    display: flex;
 }
-.row:after {
-    content: "";
-    display: table;
-    clear: both;
-}
+
 .col2{
-    float: left;
-    width: 50%;
+    flex: 0 0 50%; /* exactly 50% each */
+    height: 100vh;
+    box-sizing: border-box;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    min-width: 0; /* prevents overflow in flex children */
+}
+
+.col2 h3{
+    margin: 4px 0 6px 0;
+    padding: 0;
+    line-height: 1.2;
+    flex-shrink: 0;
+}
+
+/* Let the visualization container fill remaining height under the title */
+.col2 > div:last-child{
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
 }

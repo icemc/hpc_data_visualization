@@ -1,5 +1,6 @@
 .scatterplotDivContainer{
     height: 100%;
-    min-height: 420px; /* ensure there is room for the SVG and margins */
     width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
 }
