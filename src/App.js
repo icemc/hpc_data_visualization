@@ -2,6 +2,7 @@ import './App.css';
 import {useState, useEffect} from 'react'
 import {fetchCSV} from "./utils/helper";
 import ScatterplotContainer from "./components/scatterplot/ScatterplotContainer";
+import ParallelCoordContainer from "./components/parallelcoord/ParallelCoordContainer";
 
 function App() {
     console.log("App component function call...")
@@ -33,8 +34,25 @@ function App() {
     return (
         <div className="App">
             <div id={"MultiviewContainer"} className={"row"}>
-                <ScatterplotContainer scatterplotData={data} xAttribute={"area"} yAttribute={"price"} selectedItems={selectedItems} scatterplotControllerMethods={scatterplotControllerMethods}/>
-                
+                <div className="col2">
+                    <h3>Scatterplot (Area vs Price)</h3>
+                    <ScatterplotContainer
+                        scatterplotData={data}
+                        xAttribute={"area"}
+                        yAttribute={"price"}
+                        selectedItems={selectedItems}
+                        scatterplotControllerMethods={scatterplotControllerMethods}
+                    />
+                </div>
+
+                <div className="col2">
+                    <h3>Parallel Coordinates</h3>
+                    <ParallelCoordContainer
+                        data={data}
+                        selectedData={selectedItems}
+                        onSelectionChange={scatterplotControllerMethods.updateSelectedItems}
+                    />
+                </div>
             </div>
         </div>
     );

@@ -79,21 +79,36 @@ class ParallelCoord {
 
     drawLines() {
         const path = d => {
-            return d3.line()(this.dimensions.map(dim => [this.x(dim), this.y[dim](d[dim])]));
+            // build points and guard against undefined/NaN y-values so each line spans full width
+            const points = this.dimensions.map(dim => {
+                let raw = d[dim];
+                // if numeric scale but value is string, coerce
+                if (this.y[dim] && this.y[dim].tickFormat && typeof raw === 'string' && !isNaN(+raw)) {
+                    raw = +raw;
+                }
+                let yPos = this.y[dim](raw);
+                if (yPos === undefined || yPos === null || isNaN(yPos)) {
+                    // fallback to middle of axis to avoid path breaks
+                    yPos = this.height / 2;
+                }
+                return [this.x(dim), yPos];
+            });
+            return d3.line()(points);
         };
 
         // Remove existing lines
         this.svg.selectAll('.data-line').remove();
 
-        // Draw lines
+        // Draw lines (use index as key so updates are stable)
+        const defaultColor = '#666'; // dark grey for unselected
         this.svg.selectAll('.data-line')
-            .data(this.data)
+            .data(this.data, d => d.index)
             .join('path')
             .attr('class', 'data-line')
             .attr('d', path)
             .style('fill', 'none')
-            .style('stroke', '#69b3a2')
-            .style('opacity', 0.5);
+            .style('stroke', defaultColor)
+            .style('opacity', 0.7);
     }
 
     brushed(event, dimension) {
@@ -113,10 +128,14 @@ class ParallelCoord {
             return y >= y0 && y <= y1;
         });
 
-        // Update visual appearance
+        // Update visual appearance (selected lines -> green)
+        const defaultColor = '#666';
+        const selectedColor = '#2ca02c'; // green
+        const selectedIds = new Set(selected.map(d => d.index));
+
         this.svg.selectAll('.data-line')
-            .style('stroke', d => selected.includes(d) ? '#ff7f0e' : '#69b3a2')
-            .style('opacity', d => selected.includes(d) ? 1 : 0.2);
+            .style('stroke', d => selectedIds.has(d.index) ? selectedColor : defaultColor)
+            .style('opacity', d => selectedIds.has(d.index) ? 1 : 0.15);
 
         // Call callback with selected data
         if (this.onBrushEnd) {
@@ -125,16 +144,20 @@ class ParallelCoord {
     }
 
     updateHighlight(selectedData) {
+        const defaultColor = '#666';
+        const selectedColor = '#2ca02c';
         if (!selectedData || selectedData.length === 0) {
             this.svg.selectAll('.data-line')
-                .style('stroke', '#69b3a2')
-                .style('opacity', 0.5);
+                .style('stroke', defaultColor)
+                .style('opacity', 0.7);
             return;
         }
 
+        // Match by index to handle selections coming from other components
+        const selectedIds = new Set(selectedData.map(d => d.index));
         this.svg.selectAll('.data-line')
-            .style('stroke', d => selectedData.includes(d) ? '#ff7f0e' : '#69b3a2')
-            .style('opacity', d => selectedData.includes(d) ? 1 : 0.2);
+            .style('stroke', d => selectedIds.has(d.index) ? selectedColor : defaultColor)
+            .style('opacity', d => selectedIds.has(d.index) ? 1 : 0.15);
     }
 
     setOnBrushEnd(callback) {

@@ -17,13 +17,16 @@ function ScatterplotContainer({scatterplotData, xAttribute, yAttribute, selected
 
     const getChartSize = function(){
         // getting size from parent item
-        let width;// = 800;
-        let height;// = 100;
-        if(divContainerRef.current!==undefined){
-            width=divContainerRef.current.offsetWidth;
-            height=divContainerRef.current.offsetHeight-54;
+        // sensible defaults in case parent has no computed size yet
+        let width = 800;
+        let height = 500;
+        if (divContainerRef.current) {
+            const w = divContainerRef.current.offsetWidth;
+            const h = divContainerRef.current.offsetHeight;
+            if (w && w > 0) width = w;
+            if (h && h > 60) height = h - 54; // keep space for title/labels
         }
-        return {width:width,height:height};
+        return {width, height};
     }
 
     // did mount called once the component did mount
