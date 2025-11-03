@@ -21,7 +21,7 @@ function ScatterplotContainer({scatterplotData, xAttribute, yAttribute, selected
         let height;// = 100;
         if(divContainerRef.current!==undefined){
             width=divContainerRef.current.offsetWidth;
-            height=divContainerRef.current.offsetHeight-4;
+            height=divContainerRef.current.offsetHeight-54;
         }
         return {width:width,height:height};
     }
@@ -56,10 +56,12 @@ function ScatterplotContainer({scatterplotData, xAttribute, yAttribute, selected
         }
 
         const controllerMethods={
-            handleOnClick,
-            handleOnMouseEnter,
-            handleOnMouseLeave
+          handleOnClick,
+          handleOnMouseEnter,
+          handleOnMouseLeave,
+          updateSelectedItems: scatterplotControllerMethods.updateSelectedItems
         }
+
 
         if(scatterplotDataRef.current !== scatterplotData) {
             console.log("ScatterplotContainer useEffect with dependency when scatterplotData changes...");
@@ -81,7 +83,7 @@ function ScatterplotContainer({scatterplotData, xAttribute, yAttribute, selected
         scatterplotD3.highlightSelectedItems(selectedItems)
     },[selectedItems])
     return(
-        <div ref={divContainerRef} className="scatterplotDivContainer col2">
+        <div ref={divContainerRef} className="scatterplotDivContainer col1 container">
         </div>
     )
 }
